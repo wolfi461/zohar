@@ -91,6 +91,28 @@
             document.getElementById('outputDiv').innerHTML = res;
         }
         
+        function textInputBreaker(){
+            const inp = document.getElementById('textInput').value;
+            const inparr = inp.split(" ");
+            if(inparr.length != 3){
+                document.getElementById('inputErrorMsg').innerHTML = 'קלט שגוי';
+            }
+            else{
+                document.getElementById('inputErrorMsg').innerHTML = '';
+                let d = inparr[0];
+                let m  = inparr[1];
+                let y = inparr[2];
+
+                d = d.replace('"', '');
+                d = d.replace("'", '');
+
+                if(m.startsWith("ב")) m = m.substring(1);
+
+                y = y.replace('"', '');
+
+                console.log("d = " + d + "\nm = " + m + "\ny = " + y);
+            }
+        }
 
     </script>
     <style>
@@ -124,6 +146,9 @@
 
 <body onload="creatHY()">
     <img src="logo.png">
+    <input id="textInput">
+    <h4 id="inputErrorMsg"></h4>
+    <button onclick="textInputBreaker()">אישור</button>
     <div id="inputDiv">
         <select id="hy">
             <option value="null" selected>בחרי שנה</option>
