@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        async function ldToHd(date) {   //תאריך לועזי לתאריך עברי
+            let urlText = 'https://www.hebcal.com/converter?cfg=json&date=';
+            urlText += date + "&g2h=1&strict=1";
+            let response = await fetch(urlText);
+            let data = await response.json();
+            let res = data['hebrew'];
+            return res;
+        }
+        async function hdToId(hy, hm, hd) {   //תאריך עברי לתאריך לועזי
+            let urlText = 'https://www.hebcal.com/converter?cfg=json&hy=';
+            urlText += hy + '&hm=' + hm + '&hd=' + hd + '&h2g=1&strict=1';
+            let response = await fetch(urlText);
+            let data = await response.json();
+            let res = data["gy"] + '-' + data["gm"] + '-' + data["gd"];
+            return res;
+        }
+
+        async function cheack(){
+            const hy = document.getElementById("hy").value;
+            const hm = document.getElementById("hm").value;
+            const hd = document.getElementById("hd").value;
+            const starthD = hy + " " + hm + " " + hd;
+            const startGD = await hdToId(hy, hm, hd);
+            const endGD = await getDateAfterDays(startGD);
+            const endHD = await ldToHd(endGD);
+            await fillOutput(starthD, startGD, endGD, endHD);
+        }
+
+        async function test() {
+            const date = document.getElementById('ld').value;
+            document.getElementById('hd').value = await ldToHd(date);
+        }
+
+        function test1() {
+            const date = document.getElementById('ld').value;
+            document.getElementById('hd').value = getDateAfter280Days(date);
+        }
+
+        function getDateAfterDays(inputDate) {   //הוספת 280 ימים
+            const dayOffset = 280;
+            var date = new Date(inputDate); // Convert inputDate to a Date object
+
+            // Add 280 days to the input date
+            date.setDate(date.getDate() + dayOffset);
+
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1; // Months are zero-based, so add 1
+            var day = date.getDate();
+
+            // Format the date as YYYY-MM-DD
+            var formattedDate = year + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
+
+            return formattedDate;
+        }
+        function creatHY() {
+            const p1 = "<option value=\"", p2 = "\">", p3 = "</option>",cy = 5783, range = cy - 120;
+            for (let i = cy; i > range; --i) {
+                let text = p1 + i + p2 + numToText(i) + p3;
+                document.getElementById("hy").innerHTML += text;
+            }
+        }
+
+        function numToText(num){
+            const hnt = ['', 'ק', 'ר', 'ש', 'ת', 'תק', 'תר', 'תש', 'תת', 'תתק', 'תתר'];
+            const tnt = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
+            const ont = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
+            num = num % 1000;
+            let res = 'ה';
+            res += hnt[Math.floor(num / 100)];
+            num = num % 100;
+            res += tnt[Math.floor(num / 10)];
+            res += ont[num % 10];
+            return res;
+        }
+
+        function fillOutput(starthD, startGD, endGD, endHD){
+            const p1 = "<h1 class =\"outText\">", p2 = "<h1>";
+            const res = /*p1 + "תאריך חתונה עברי: " + starthD + p2 +*/
+            p1 + "תאריך חתונה לועזי: " + startGD + p2 + 
+            p1 + "תאריך לידה עברי משוער: " + endHD + p2 +
+            p1 + "תאריך לידה לועזי משוער: " + endGD + p2;
+            document.getElementById('outputDiv').innerHTML = res;
+        }
+        
+
+    </script>
+    <style>
+        body{
+            background-image: linear-gradient(#fff, #99f);
+            background-repeat: no-repeat;
+            height: 100vh;
+        }
+        select {
+            direction: rtl;
+        }
+
+        #inputDiv{
+            direction: rtl;
+            margin-right: 30%;
+            padding: 10px;
+            border-style: solid;
+            border-width: 10px;
+            border-color: #fc7;
+            border-radius: 20px;
+        }
+        #outputDiv{
+            direction: rtl;
+        }
+        .outText{
+            color: #004;
+        }
+        
+    </style>
+</head>
+
+<body onload="creatHY()">
+    <img src="logo.png">
+    <div id="inputDiv">
+        <select id="hy">
+            <option value="null" selected>בחרי שנה</option>
+        </select>
+        <select id="hm">
+            <option value=null selected>בחרי חודש</option>
+            <option value="Tishrei">תשרי</option>
+            <option value="Cheshvan">חשוון</option>
+            <option value="Kislev">כסלו</option>
+            <option value="Tevet">טבת</option>
+            <option value="Shvat">שבט</option>
+            <option value="Adar">אדר</option>
+            <option value="Adar1">אדר א'</option>
+            <option value="Adar2">אדר ב'</option>
+            <option value="Nisan">ניסן</option>
+            <option value="Iyyar">אייר</option>
+            <option value="Sivan">סיוון</option>
+            <option value="Tamuz">תמוז</option>
+            <option value="Av">אב</option>
+            <option value="Elul">אלול</option>
+        </select>
+        <select id="hd">
+            <option value=null selected>בחרי יום</option>
+            <option value="1">א'</option>
+            <option value="2">ב'</option>
+            <option value="3">ג'</option>
+            <option value="4">ד'</option>
+            <option value="5">ה'</option>
+            <option value="6">ו'</option>
+            <option value="7">ז'</option>
+            <option value="8">ח'</option>
+            <option value="9">ט'</option>
+            <option value="10">י'</option>
+            <option value="11">י"א</option>
+            <option value="12">י"ב</option>
+            <option value="13">י"ג</option>
+            <option value="14">י"ד</option>
+            <option value="15">ט"ו</option>
+            <option value="16">ט"ז</option>
+            <option value="17">י"ז</option>
+            <option value="18">י"ח</option>
+            <option value="19">י"ט</option>
+            <option value="20">כ'</option>
+            <option value="21">כ"א</option>
+            <option value="22">כ"ב</option>
+            <option value="23">כ"ג</option>
+            <option value="24">כ"ד</option>
+            <option value="25">כ"ה</option>
+            <option value="26">כ"ו</option>
+            <option value="27">כ"ז</option>
+            <option value="28">כ"ח</option>
+            <option value="29">כ"ט</option>
+            <option value="30">ל'</option>
+        </select>
+        <button onclick="cheack()">אישור</button>
+    </div>
+    <div id="outputDiv">
+        
+    </div>
+</body>
+
+</html>
