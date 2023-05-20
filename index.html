@@ -24,15 +24,32 @@
             return res;
         }
 
-        async function cheack(){
-            const hy = document.getElementById("hy").value;
-            const hm = document.getElementById("hm").value;
-            const hd = document.getElementById("hd").value;
-            const starthD = hy + " " + hm + " " + hd;
-            const startGD = await hdToId(hy, hm, hd);
-            const endGD = await getDateAfterDays(startGD);
-            const endHD = await ldToHd(endGD);
-            await fillOutput(starthD, startGD, endGD, endHD);
+        async function cheack() {
+            const inp = document.getElementById('textInput').value;
+            if(inp[0] <= '9' && inp[0] >= '0'){
+                console.log('en');
+                const inpG = textInputBreakerL();
+                const gy = inpG['y'];
+                const gm = inpG['m'];
+                const gd = inpG['d'];
+                const startGD = gd + "." + gm + "." + gy;
+                const starthD = await ldToHd(gy + '-' + gm + '-' + gd);
+                const endGD = await getDateAfterDays(gy + '-' + gm + '-' + gd);
+                const endHD = await ldToHd(endGD);
+                await fillOutput(starthD, startGD, endGD, endHD);
+            }
+            else{
+                console.log('he');
+                const inpH = textInputBreakerH();
+                const hy = inpH['y'];
+                const hm = inpH['m'];
+                const hd = inpH['d'];
+                const starthD = hy + " " + hm + " " + hd;
+                const startGD = await hdToId(hy, hm, hd);
+                const endGD = await getDateAfterDays(startGD);
+                const endHD = await ldToHd(endGD);
+                await fillOutput(starthD, startGD, endGD, endHD);
+            }
         }
 
         async function test() {
@@ -62,14 +79,14 @@
             return formattedDate;
         }
         function creatHY() {
-            const p1 = "<option value=\"", p2 = "\">", p3 = "</option>",cy = 5783, range = cy - 120;
+            const p1 = "<option value=\"", p2 = "\">", p3 = "</option>", cy = 5783, range = cy - 120;
             for (let i = cy; i > range; --i) {
                 let text = p1 + i + p2 + numToText(i) + p3;
                 document.getElementById("hy").innerHTML += text;
             }
         }
 
-        function numToText(num){
+        function numToText(num) {
             const hnt = ['', 'ק', 'ר', 'ש', 'ת', 'תק', 'תר', 'תש', 'תת', 'תתק', 'תתר'];
             const tnt = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
             const ont = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
@@ -82,50 +99,208 @@
             return res;
         }
 
-        function fillOutput(starthD, startGD, endGD, endHD){
+        function fillOutput(starthD, startGD, endGD, endHD) {
             const p1 = "<h1 class =\"outText\">", p2 = "<h1>";
-            const res = /*p1 + "תאריך חתונה עברי: " + starthD + p2 +*/
-            p1 + "תאריך חתונה לועזי: " + startGD + p2 + 
-            p1 + "תאריך לידה עברי משוער: " + endHD + p2 +
-            p1 + "תאריך לידה לועזי משוער: " + endGD + p2;
+            const res = p1 + "תאריך חתונה עברי: " + starthD + p2 +
+                p1 + "תאריך חתונה לועזי: " + startGD + p2 +
+                p1 + "תאריך לידה עברי משוער: " + endHD + p2 +
+                p1 + "תאריך לידה לועזי משוער: " + endGD + p2;
             document.getElementById('outputDiv').innerHTML = res;
         }
-        
-        function textInputBreaker(){
+
+        function textInputBreakerH() {
+            document.getElementById('inputErrorMsg').innerHTML = '';
             const inp = document.getElementById('textInput').value;
+            let d, m, y;
             const inparr = inp.split(" ");
+            let is4;
+            if (inparr.length === 3) {
+                is4 = false;
+                d = inparr[0];
+                m = inparr[1];
+                y = inparr[2];
+            }
+            else if (inparr.length === 4) {
+                is4 = true;
+                d = inparr[0];
+                m = inparr[1] + inparr[2];
+                m = m.replace("'", '');
+                y = inparr[3];
+            }
+            else {
+                document.getElementById('inputErrorMsg').innerHTML = 'קלט שגוי';
+                return;
+            }
+
+            d = d.replace('"', '');
+            d = d.replace("'", '');
+            if (m.startsWith("ב")) m = m.substring(1);
+            y = y.replace('"', '');
+            if (y.startsWith("ה")) y = y.substring(1);
+
+            d = cheackDay(d);
+            if(d === -1){
+                document.getElementById('inputErrorMsg').innerHTML = 'הערך -' + inparr[0] + '- אינו יום תקין';
+                return;
+            }
+
+            m = convertMonth(m);
+            if(m == undefined){
+                document.getElementById('inputErrorMsg').innerHTML = 'הערך -' + (is4 ? inparr[1] + inparr[2] : inparr[1]) + '- אינו חודש תקין';
+                return;
+            }
+
+            y = cheackYear(y);
+            if(y === -1){
+                document.getElementById('inputErrorMsg').innerHTML = 'הערך -' + inparr[(is4 ? 3 : 2)] + '- אינו שנה תקינה';
+                return;
+            }
+            
+            const res = {
+                d : d,
+                m : m,
+                y : y
+            };
+            return res;
+        }
+
+        function textInputBreakerL() {
+            document.getElementById('inputErrorMsg').innerHTML = '';
+            let inp = document.getElementById('textInput').value;
+            inp = inp.replaceAll('.', '-');
+            inp = inp.replaceAll('/', '-');
+            inp = inp.replaceAll('\\', '-');
+            const inparr = inp.split("-");
             if(inparr.length != 3){
                 document.getElementById('inputErrorMsg').innerHTML = 'קלט שגוי';
+                return;
+            }
+            const d = inparr[0];
+            const m = inparr[1];
+            let y = inparr[2];
+
+            if(d < 1 || d > 31){
+                document.getElementById('inputErrorMsg').innerHTML = 'הערך -' + inparr[0] + '- אינו יום תקין';
+                return;
+            }
+            if(m < 1 || m > 12){
+                document.getElementById('inputErrorMsg').innerHTML = 'הערך -' + inparr[1] + '- אינו חודש תקין';
+                return;
+            }
+            if(y.length == 2){
+                if(y > 60) y = 19 + y;
+                else y = 20 + y;
+            }
+            else if(y.length != 4){
+                document.getElementById('inputErrorMsg').innerHTML = 'הערך -' + inparr[1] + '- אינו שנה תקינה';
+                return;
+            }
+            const res = {
+                d : d,
+                m : m,
+                y : y
+            };
+            return res;
+        }
+
+        function cheackDay(d){
+            if(d.length === 1){
+                d = gimatria(d);
+                if(d == undefined || d > 30) return -1;
+                return d;
             }
             else{
-                document.getElementById('inputErrorMsg').innerHTML = '';
-                let d = inparr[0];
-                let m  = inparr[1];
-                let y = inparr[2];
-
-                d = d.replace('"', '');
-                d = d.replace("'", '');
-
-                if(m.startsWith("ב")) m = m.substring(1);
-
-                y = y.replace('"', '');
-
-                console.log("d = " + d + "\nm = " + m + "\ny = " + y);
+                const temp = gimatria(d[0]);
+                if(temp == undefined || temp < 9 || temp > 20) return -1;
+                const temp1 = gimatria(d[1]);
+                if(temp1 == undefined || temp1 > 9) return -1;
+                return temp + temp1;
             }
+        }
+
+        function cheackYear(y){
+            if(y.length === 3){
+                const l1 = gimatria(y[0]);
+                const l2 = gimatria(y[1]);
+                const l3 = gimatria(y[2]);
+                if(l1 == undefined || l2 == undefined || l3 == undefined || l1 != 400 || l2 < 100 || l3 > 90) return -1;
+                return l1 +l2 +l3 + 5000;
+            }
+            else if(y.length === 4){
+                const l1 = gimatria(y[0]);
+                const l2 = gimatria(y[1]);
+                const l3 = gimatria(y[2]);
+                const l4 = gimatria(y[3]);
+                if(l1 == undefined || l2 == undefined || l3 == undefined || l4 == undefined || l1 != 400 || l2 < 100 || l3 > 90 || l3 < 10 || l4 > 9) return -1;
+                return l1 +l2 +l3 + l4 + 5000;
+            }
+                return -1;
+        }
+
+        function convertMonth(month){
+            const dic = {
+                תשרי : "Tishrei",
+                חשוון : "Cheshvan",
+                כסלו : "Kislev",
+                טבט : "Tevet",
+                שבט : "Shvat",
+                אדר : "Adar",
+                אדרא : "Adar1",
+                אדרב : "Adar2",
+                ניסן : "Nisan",
+                אייר : "Iyyar",
+                סיוון : "Sivan",
+                תמוז : "Tamuz",
+                אב : "Av",
+                אלול : "Elul"
+            };
+            return dic[month];
+        }
+
+        function gimatria(letter){
+            const dic = {
+                א : 1,
+                ב : 2,
+                ג : 3,
+                ד : 4,
+                ה : 5,
+                ו : 6,
+                ז : 7,
+                ח : 8,
+                ט : 9,
+                י : 10,
+                כ : 20,
+                ל : 30,
+                מ : 40,
+                נ : 50,
+                ס : 60,
+                ע : 70,
+                פ : 80,
+                צ : 90,
+                ק : 100,
+                ר : 200,
+                ש : 300,
+                ת : 400
+            }
+            return dic[letter];
         }
 
     </script>
     <style>
-        body{
+        body {
             background-image: linear-gradient(#fff, #99f);
             background-repeat: no-repeat;
             height: 100vh;
         }
+
         select {
             direction: rtl;
         }
+        input {
+            direction: rtl;
+        }
 
-        #inputDiv{
+        #inputDiv {
             direction: rtl;
             margin-right: 30%;
             padding: 10px;
@@ -134,79 +309,30 @@
             border-color: #fc7;
             border-radius: 20px;
         }
-        #outputDiv{
+
+        #outputDiv {
             direction: rtl;
         }
-        .outText{
+
+        .outText {
             color: #004;
+            direction: rtl;
         }
-        
+
+        #inputErrorMsg{
+            direction: rtl;
+        }
     </style>
 </head>
 
-<body onload="creatHY()">
+<body>
     <img src="logo.png">
     <input id="textInput">
     <h4 id="inputErrorMsg"></h4>
-    <button onclick="textInputBreaker()">אישור</button>
-    <div id="inputDiv">
-        <select id="hy">
-            <option value="null" selected>בחרי שנה</option>
-        </select>
-        <select id="hm">
-            <option value=null selected>בחרי חודש</option>
-            <option value="Tishrei">תשרי</option>
-            <option value="Cheshvan">חשוון</option>
-            <option value="Kislev">כסלו</option>
-            <option value="Tevet">טבת</option>
-            <option value="Shvat">שבט</option>
-            <option value="Adar">אדר</option>
-            <option value="Adar1">אדר א'</option>
-            <option value="Adar2">אדר ב'</option>
-            <option value="Nisan">ניסן</option>
-            <option value="Iyyar">אייר</option>
-            <option value="Sivan">סיוון</option>
-            <option value="Tamuz">תמוז</option>
-            <option value="Av">אב</option>
-            <option value="Elul">אלול</option>
-        </select>
-        <select id="hd">
-            <option value=null selected>בחרי יום</option>
-            <option value="1">א'</option>
-            <option value="2">ב'</option>
-            <option value="3">ג'</option>
-            <option value="4">ד'</option>
-            <option value="5">ה'</option>
-            <option value="6">ו'</option>
-            <option value="7">ז'</option>
-            <option value="8">ח'</option>
-            <option value="9">ט'</option>
-            <option value="10">י'</option>
-            <option value="11">י"א</option>
-            <option value="12">י"ב</option>
-            <option value="13">י"ג</option>
-            <option value="14">י"ד</option>
-            <option value="15">ט"ו</option>
-            <option value="16">ט"ז</option>
-            <option value="17">י"ז</option>
-            <option value="18">י"ח</option>
-            <option value="19">י"ט</option>
-            <option value="20">כ'</option>
-            <option value="21">כ"א</option>
-            <option value="22">כ"ב</option>
-            <option value="23">כ"ג</option>
-            <option value="24">כ"ד</option>
-            <option value="25">כ"ה</option>
-            <option value="26">כ"ו</option>
-            <option value="27">כ"ז</option>
-            <option value="28">כ"ח</option>
-            <option value="29">כ"ט</option>
-            <option value="30">ל'</option>
-        </select>
-        <button onclick="cheack()">אישור</button>
-    </div>
+    <button onclick="cheack()">אישור</button>
+    <button onclick="textInputBreakerL()">test</button>
     <div id="outputDiv">
-        
+
     </div>
 </body>
 
